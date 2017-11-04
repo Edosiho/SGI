@@ -14,11 +14,30 @@
 	    varying vec4 vColor;
 	    varying vec2 vTextureCoord;
   		uniform sampler2D uSampler;
+  		uniform int uPaintType;
+  		uniform int uLine;
 
 
 		void main(void) {
 			//gl_FragColor = vColor;
-			gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+			
+			if(uPaintType == 0)gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+			if(uPaintType == 1){
+				float temp = float(uLine);
+				float pixelDiv = 600.0/ temp ; 
+	            int val = int(mod(gl_FragCoord.y/pixelDiv, 5.0));
+	            if (val == 0)  {
+	                gl_FragColor = vec4(1,0,0,1.0);
+	            } else if (val == 1)  {
+	                gl_FragColor = vec4(0,1,0,1.0);
+	            } else if (val == 2)  {
+	                gl_FragColor = vec4(0,0,1,1.0);
+	            } else if (val == 3)  {
+	                gl_FragColor = vec4(1,1,0,1.0);
+	            } else if (val == 4)  {
+	                gl_FragColor = vec4(0,1,1,1.0);
+	            } 
+			}
 		}
 	</script>
 
@@ -27,8 +46,6 @@
   		attribute vec4 aVertexColor;
 
   		attribute vec2 aTextureCoord;
-
-
   		uniform mat4 uMVMatrix;
   		uniform mat4 uPMatrix;
   		varying vec2 vTextureCoord;
@@ -42,5 +59,32 @@
 	</script>
 </head>
 <body onload="webGLStart();">
-	<canvas id="webgl-canvas" style="border: none;" width="500" height="500"></canvas>
+	<canvas id="webgl-canvas" style="border: none;" width="800" height="600"  ondrop="drop(event)" ondragover="allowDrop(event)"></canvas>
+	 <h2> Seleccionar figura </h2>
+        <form action="#">
+          <input type="radio" name = "figure" value="0"/> Piramide
+          <input type="radio" name = "figure" value="1"/> Cubo
+        </form>
+    <h2> Rotacion Figura </h2>
+        <form action="#">
+          <input type="checkbox" id = "rotX"  /> Rotacion X
+          <input type="checkbox" id = "rotY" /> Rotacion Y
+          <input type="checkbox" id = "rotZ" /> Rotacion Z
+        </form>
+    <h2> Seleccionar Pintado </h2>
+        <form action="#">
+          <input type="radio" name = "paint" value="0"/> Textura
+          <input type="radio" name = "paint" value="1"/> Fragment
+          <input type="radio" name = "paint" value="1"/> Shader
+          <td>
+         	<input type="range" id="sliderLines"  min="30" max="250" step="10" value = "1" />
+         </td>
+        </form>
+    <br>
+    <p><img id="texture0" src="pyramid.png" alt="Pyramid" draggable="true" ondragstart="drag(event)" width="250" height="250">
+    <img id="texture1" src="crate.jpg" alt="Crate" draggable="true" ondragstart="drag(event)" width="250" height="250">
+    <img id="texture2" src="death_star.jpg" alt="The Death Star" draggable="true" ondragstart="drag(event)" width="250" height="250">
+
+
+
 </body>

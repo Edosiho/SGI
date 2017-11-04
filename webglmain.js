@@ -23,6 +23,21 @@ var rPyramid = 0;
 var rCube = 0;
 
 
+//HTML Values
+var figuresLen = 2 // Amount of figures on screen
+var currFigure =0;
+var currPaint = 0;
+var rotX = 0; 
+var rotY= 0;
+var rotZ = 0;
+
+var rotMatrix = [];
+var transMatrix = [];
+var escMatrix = [];
+
+var textureArrays = [];
+var appliedTextures = [];
+
 function mvPushMatrix() {
     var copy = mat4.create();
     mat4.set(mvMatrix, copy);
@@ -39,6 +54,18 @@ function mvPushMatrix() {
 function degToRad(degrees) {
         return degrees * Math.PI / 180;
 }
+
+function initMatrices(){
+	var xPos = -2;
+	for (var i = 0; i <figuresLen ; i++) {
+			rotMatrix.push({x:0,y:0,z:0})
+            
+            var pos = {x:xPos,y:0,z:-10};
+            transMatrix.push(pos);
+            xPos += 3;
+        }
+}
+
 
 
 function initShaders() {
@@ -59,11 +86,13 @@ function initShaders() {
  	shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
     shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
-    gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
+    //gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
     shaderProgram.textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
     gl.enableVertexAttribArray(shaderProgram.textureCoordAttribute);
 
 
+    shaderProgram.uPaintTypeUniform = gl.getUniformLocation(shaderProgram, "uPaintType");  
+    shaderProgram.uLine = gl.getUniformLocation(shaderProgram, "uLine");  
     shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
     shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
     shaderProgram.samplerUniform = gl.getUniformLocation(shaderProgram, "uSampler");
@@ -120,7 +149,47 @@ function initGL(canvas) {
 	}
 }
 
+function updateValues(){
+	var radios = document.getElementsByName('figure');
+    for (var i = 0, length = radios.length; i < length; i++) {
+        if (radios[i].checked) {
+            if (currFigure != i)
+                figureChanged = true;
+            currFigure = i;
+            // only one radio can be logically checked, don't check the rest
+            break;
+        }
+    }
+  	if( document.getElementById('rotX').checked != rotX) rotX = !rotX;
+  	if( document.getElementById('rotY').checked != rotY) rotY = !rotY;
+  	if( document.getElementById('rotZ').checked != rotZ) rotZ = !rotZ;
+
+  	var xTemp =  +rotX;
+  	var yTemp = +rotY;
+  	var zTemp = +rotZ;
+
+  	rotMatrix[currFigure].x =xTemp;
+  	rotMatrix[currFigure].y =yTemp;
+  	rotMatrix[currFigure].z =zTemp;
+
+  	radios = document.getElementsByName("paint");      
+    for (var i = 0, length = radios.length; i < length; i++) {
+        if (radios[i].checked) {
+            currPaint = i;
+            break;
+        }
+    }
+}
+
 function drawScene(){
+
+	updateValues();
+	var fringe = document.getElementById("sliderLines").value;
+	fringe = parseInt(fringe);
+	gl.uniform1i(shaderProgram.uLine, fringe);
+	gl.uniform1i(shaderProgram.uPaintTypeUniform, currPaint);
+
+
 	gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -129,9 +198,9 @@ function drawScene(){
     mat4.identity(mvMatrix);
 
     //Pyramid
-    mat4.translate(mvMatrix, [-1.5, 0.0, -10.0]);
+    mat4.translate(mvMatrix, [transMatrix[0].x, transMatrix[0].y, transMatrix[0].z]);
     mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rPyramid), [1, 1, 1]);
+    mat4.rotate(mvMatrix, degToRad(rPyramid), [rotMatrix[0].x, rotMatrix[0].y, rotMatrix[0].z]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, pyramidVertexPositionBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, pyramidVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -141,7 +210,7 @@ function drawScene(){
 	gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, pyramidVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, pyramidTexture);
+    gl.bindTexture(gl.TEXTURE_2D, appliedTextures[0]);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
     //gl.bindBuffer(gl.ARRAY_BUFFER, pyramidVertexColorBuffer);
     //gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, pyramidVertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -152,10 +221,10 @@ function drawScene(){
     mvPopMatrix();
 
     //Cube
-    mat4.translate(mvMatrix, [3.0, 0.0, 0.0]);
+    mat4.translate(mvMatrix, [7.0, 0.0, -10.0]);
 
     mvPushMatrix();
-    mat4.rotate(mvMatrix, degToRad(rCube), [1, 1, 1]);
+    mat4.rotate(mvMatrix, degToRad(rCube), [rotMatrix[1].x, rotMatrix[1].y, rotMatrix[1].z]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, cubeVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -166,7 +235,7 @@ function drawScene(){
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexTextureCoordBuffer);
 	gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, cubeVertexTextureCoordBuffer.itemSize, gl.FLOAT, false, 0, 0);
 	gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, crateTexture);
+    gl.bindTexture(gl.TEXTURE_2D, appliedTextures[1]);
     gl.uniform1i(shaderProgram.samplerUniform, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
@@ -411,6 +480,9 @@ function handleLoadedTexture(texture) {
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.bindTexture(gl.TEXTURE_2D, null);
 }
+function setTexture(value){
+	appliedTextures[currFigure] = textureArrays[value];
+}
 function initTextures(){
 	crateTexture= gl.createTexture();
     crateTexture.image = new Image();
@@ -426,6 +498,21 @@ function initTextures(){
     }
     pyramidTexture.image.src = "pyramid.png";
 
+    sphereTexture =gl.createTexture();
+    sphereTexture.image = new Image();
+    sphereTexture.image.onload = function() {
+      handleLoadedTexture(sphereTexture)
+    }
+    sphereTexture.image.src = "death_star.jpg";
+
+    textureArrays.push(pyramidTexture);
+    textureArrays.push(crateTexture);
+    textureArrays.push(sphereTexture);
+    //sets the default textures
+    appliedTextures[0] = textureArrays[0];
+    appliedTextures[1] = textureArrays[1];
+    appliedTextures[2] = textureArrays[2];
+
 }
 function webGLStart() {
     var canvas = document.getElementById("webgl-canvas");
@@ -433,9 +520,35 @@ function webGLStart() {
     initShaders();
     initBuffers();
     initTextures();
+    initMatrices()
 
     gl.clearColor(0.7, 0.4, 0.5, 1.0);
     gl.enable(gl.DEPTH_TEST);
 
     tick();
+}
+
+
+//Pure Javascript CODE
+function allowDrop(ev) {
+          ev.preventDefault();
+      }
+
+function drag(ev) {
+  ev.dataTransfer.setData("text", ev.target.id);
+}
+
+function drop(ev) {
+	ev.preventDefault();
+	var data = ev.dataTransfer.getData("text");
+
+	var temp = ev.target.id;
+	console.log(data.slice(data.length-1));
+	temp = data.slice(data.length-1)
+
+	ev.target.appendChild(document.getElementById(data).cloneNode(true));
+
+	setTexture(temp); //metodo que cambia la textura de la figura
+	ev.preventDefault();
+
 }
