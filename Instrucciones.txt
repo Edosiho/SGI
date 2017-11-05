@@ -1,0 +1,39 @@
+
+*******************************************************************************
+*******************************************************************************
+** Autores: Eduardo Rodriguez,Miquel Lara
+** PROYECTO SGI
+**	08/11/2017
+**  
+*******************************************************************************
+*******************************************************************************
+
+						INSTRUCCIONES DE USO
++Tipo de Camara: Radio buttons que  permite escoger entre vista de perspectiva y vista ortogonal
+
++Seleccionar Figura: Radio buttons que permiten escoger y manipular  las 3 figuras en escena
+
+
++Rotacion Figura: Checkboxes que hacen que la figura escogida rote en el eje escogido
+	- Si se cambia de figura, la figura pasada seguira girando a partir de los ejes que le dieron
+
++ Seleccionar Pintado: Radio buttons que permiten escoger entre las 3 maneras de pintar una figura
+	- Textura : Texturiza las figuras
+	- Fragment: Se pintan las figuras en franjas horizontales, se tiene un slider que permite cambiar el ancho del slider
+	- Shader : Se pintan las figuras a partir de un color dado por el usuario, mientras mas elevado, tendra mas intensidad el color
+
++Multimedia: Cancion que se puede pausar
+
+
+*******************************************************************************
+							CONTROLES
+*******************************************************************************
+
++Movimiento de Figuras:
+	-W: Mueve la figura hacia arriba
+	-A: Mueve la figura hacia la izquiera
+	-S: Mueve la figura abajo
+	-D: Mueve la figura hacia la derecha
++Movimiento de Camara
+	-Z: Hace zoom out
+	-X: Hace zoom in

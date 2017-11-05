@@ -4,9 +4,9 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
 	<title>Practica SGI  </title>
 
-	<script type="text/javascript" src="glMatrix-0.9.5.min.js"></script>
-	<script type="text/javascript" src="webglmain.js"></script>
-	<script type="text/javascript" src="web-gl-utils.js"></script>
+	<script type="text/javascript" src="./Javascript/glMatrix-0.9.5.min.js"></script>
+	<script type="text/javascript" src="./Javascript/webglmain.js"></script>
+	<script type="text/javascript" src="./Javascript/web-gl-utils.js"></script>
 
 	<script id="shader-fs" type="x-shader/x-fragment">
 	    precision mediump float;
@@ -17,12 +17,14 @@
   		uniform int uPaintType;
   		uniform int uLine;
 
+  		varying vec3 vVertexColor;
+
 
 		void main(void) {
 			//gl_FragColor = vColor;
 			
 			if(uPaintType == 0)gl_FragColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-			if(uPaintType == 1){
+			else if(uPaintType == 1){
 				float temp = float(uLine);
 				float pixelDiv = 600.0/ temp ; 
 	            int val = int(mod(gl_FragCoord.y/pixelDiv, 5.0));
@@ -38,6 +40,7 @@
 	                gl_FragColor = vec4(0,1,1,1.0);
 	            } 
 			}
+			else if(uPaintType == 2) gl_FragColor = vec4(vVertexColor.r,vVertexColor.g,vVertexColor.b,1.0);
 		}
 	</script>
 
@@ -45,25 +48,43 @@
 		attribute vec3 aVertexPosition;
   		attribute vec4 aVertexColor;
 
+
+  		uniform vec3 uVertexColor;
+
   		attribute vec2 aTextureCoord;
   		uniform mat4 uMVMatrix;
   		uniform mat4 uPMatrix;
   		varying vec2 vTextureCoord;
   		varying vec4 vColor;
 
+  		varying vec3 vVertexColor;
+
 	 	void main(void) {
+	 		vVertexColor = uVertexColor;
 	    	gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 	    	vColor = aVertexColor;
 	    	vTextureCoord = aTextureCoord;
+	    	float ratio = gl_Position.y +1.0;
+	    	ratio = ratio / 2.0;
+
+	    	vVertexColor.r = vVertexColor.r * ratio;
+            vVertexColor.g = vVertexColor.g * ratio;
+            vVertexColor.b = vVertexColor.b * ratio;
 	  	}
 	</script>
 </head>
 <body onload="webGLStart();">
 	<canvas id="webgl-canvas" style="border: none;" width="800" height="600"  ondrop="drop(event)" ondragover="allowDrop(event)"></canvas>
+	<h2> Tipo de Camara </h2>
+        <form action="#">
+          <input type="radio" name = "camera" value="0" checked="true" /> Perspectiva
+          <input type="radio" name = "camera" value="1"/> Ortogonal
+        </form>
 	 <h2> Seleccionar figura </h2>
         <form action="#">
-          <input type="radio" name = "figure" value="0"/> Piramide
+          <input type="radio" name = "figure" value="0" checked="true" /> Piramide
           <input type="radio" name = "figure" value="1"/> Cubo
+          <input type="radio" name = "figure" value="2"/> Esfera
         </form>
     <h2> Rotacion Figura </h2>
         <form action="#">
@@ -71,20 +92,28 @@
           <input type="checkbox" id = "rotY" /> Rotacion Y
           <input type="checkbox" id = "rotZ" /> Rotacion Z
         </form>
+    <h2> Escala Figura </h2>
+    <input type="range" id="sliderScale"  min=".3" max="5" step="0.2" value = "1" />
     <h2> Seleccionar Pintado </h2>
         <form action="#">
-          <input type="radio" name = "paint" value="0"/> Textura
+          <input type="radio" name = "paint" value="0" checked="true" /> Textura
           <input type="radio" name = "paint" value="1"/> Fragment
           <input type="radio" name = "paint" value="1"/> Shader
           <td>
          	<input type="range" id="sliderLines"  min="30" max="250" step="10" value = "1" />
+         	<input id="color_value" type="color" value="#ff0000" "/> 
          </td>
         </form>
     <br>
-    <p><img id="texture0" src="pyramid.png" alt="Pyramid" draggable="true" ondragstart="drag(event)" width="250" height="250">
-    <img id="texture1" src="crate.jpg" alt="Crate" draggable="true" ondragstart="drag(event)" width="250" height="250">
-    <img id="texture2" src="death_star.jpg" alt="The Death Star" draggable="true" ondragstart="drag(event)" width="250" height="250">
-
+    <p>
+    <img id="texture0" src="./Textures/pyramid.png" alt="Pyramid" draggable="true" ondragstart="drag(event)" display='True' width="250" height="250">
+    <img id="texture1" src="./Textures/crate.jpg" alt="Crate" draggable="true" ondragstart="drag(event)" width="250" height="250">
+    <img id="texture2" src="./Textures/death_star.jpg" alt="The Death Star" draggable="true" ondragstart="drag(event)" width="250" height="250">
+   	<br>
+   	<audio  controls>
+        <source src="./Sounds/deja_vu.mp3" id="audio" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
 
 
 </body>
